@@ -107,3 +107,41 @@ const questions = [
     chatBox.scrollTop = chatBox.scrollHeight;
   }
   
+  function updateProgress() {
+    const listItems = progressList.querySelectorAll("li");
+  
+    listItems.forEach((item, index) => {
+      item.classList.remove("active");
+  
+      if (index === currentStep && currentStep < listItems.length) {
+        item.classList.add("active");
+      }
+    });
+  
+    if (currentStep >= questions.length) {
+      listItems.forEach((item) => item.classList.remove("active"));
+      listItems[listItems.length - 1].classList.add("active");
+    }
+  }
+  
+  function showSummary() {
+    summaryPanel.classList.remove("hidden");
+    summaryContent.innerHTML = "";
+  
+    questions.forEach((question) => {
+      const div = document.createElement("div");
+      div.className = "summary-item";
+      div.innerHTML = `<strong>${question.label}:</strong> ${userAnswers[question.key]}`;
+      summaryContent.appendChild(div);
+    });
+  }
+  
+  function showRecommendationPlaceholder() {
+    resultsPanel.classList.remove("hidden");
+    resultsContent.innerHTML = `
+      <div class="result-card">
+        <h4>Recommendations</h4>
+        <p>I am analyzing your preferences to find the best matches for you.</p>
+      </div>
+    `;
+  }
