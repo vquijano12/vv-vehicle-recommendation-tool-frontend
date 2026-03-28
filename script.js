@@ -48,4 +48,62 @@ const questions = [
   const summaryContent = document.getElementById("summaryContent");
   const resultsContent = document.getElementById("resultsContent");
   
+  sendButton.addEventListener("click", handleUserInput);
+  
+  userInput.addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+      handleUserInput();
+    }
+  });
+  
+  function handleUserInput() {
+    const answer = userInput.value.trim();
+  
+    if (answer === "") {
+      return;
+    }
+  
+    addMessage("You", answer, "user-message");
+  
+    const currentQuestion = questions[currentStep];
+    userAnswers[currentQuestion.key] = answer;
+  
+    userInput.value = "";
+  
+    currentStep++;
+  
+    updateProgress();
+  
+    setTimeout(() => {
+      if (currentStep < questions.length) {
+        addMessage("Assistant", questions[currentStep].question, "bot-message");
+      } else {
+        addMessage(
+          "Assistant",
+          "Thank you! I have collected your preferences. Here is a summary of your answers.",
+          "bot-message"
+        );
+  
+        showSummary();
+        showRecommendationPlaceholder();
+  
+        userInput.disabled = true;
+        sendButton.disabled = true;
+        userInput.placeholder = "Conversation completed";
+      }
+    }, 500);
+  }
+  
+  function addMessage(sender, text, className) {
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${className}`;
+  
+    messageDiv.innerHTML = `
+      <div class="message-label">${sender}</div>
+      <div class="message-text">${text}</div>
+    `;
+  
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
   
