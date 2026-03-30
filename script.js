@@ -1,25 +1,30 @@
 const questions = [
-    {
+/*    {
       key: "budget",
       label: "Budget",
       question: "What is your budget?"
+    },*/
+    {
+      key: "currentVehicle",
+      label: "Current Vehicle",
+      question: "What is your current vehicle's make and model?"
     },
     {
       key: "vehicleType",
       label: "Vehicle Type",
       question: "What type of vehicle are you looking for? For example: SUV, sedan, truck, coupe, hatchback, or minivan."
     },
-    {
+/*    {
       key: "fuelType",
       label: "Fuel Type",
       question: "What fuel type do you prefer? For example: gasoline, hybrid, electric, or diesel."
-    },
+    },*/
     {
-      key: "brand",
-      label: "Brand Preference",
-      question: "Do you have a preferred brand? You can type the brand name or say no preference."
+      key: "makeAndModel",
+      label: "Make/Model Preference",
+      question: "Do you have a preferred make and model? You can type the make and model name or say no preference."
     },
-    {
+/*    {
       key: "safetyPriority",
       label: "Safety Priority",
       question: "How important is safety to you? You can answer high, medium, or low."
@@ -33,7 +38,7 @@ const questions = [
       key: "lifestyleNeeds",
       label: "Lifestyle Needs",
       question: "How will you mainly use the vehicle? For example: commuting, family use, road trips, city driving, or long-distance travel."
-    }
+    }*/
   ];
   
   let currentStep = 0;
