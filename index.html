@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehicle Recommendation Tool</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <h1>Visionary Vortex</h1>
+        <p>Vehicle Recommendation Tool</p>
+      </div>
+
+      <div class="sidebar-section">
+        <h2>Project Focus</h2>
+        <p>
+          This system uses a conversational interface to guide users through entering
+          preferences and will generate personalized vehicle recommendations using
+          external data sources such as the NHTSA API and AI services.
+        </p>
+      </div>
+
+      <div class="sidebar-section">
+        <h2>Conversation Progress</h2>
+        <ul id="progressList">
+          <li class="active">Budget</li>
+          <li>Vehicle Type</li>
+          <li>Fuel Type</li>
+          <li>Brand Preference</li>
+          <li>Safety Priority</li>
+          <li>Features</li>
+          <li>Lifestyle Needs</li>
+          <li>Recommendation Area</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="chat-wrapper">
+      <header class="chat-header">
+        <div>
+          <h2>Vehicle Recommendation Assistant</h2>
+          <p>Chat-based preference collection and conversational UI prototype</p>
+        </div>
+      </header>
+
+      <section id="chatBox" class="chat-box">
+        <div class="message bot-message">
+          <div class="message-label">Assistant</div>
+          <div class="message-text">
+            Hello! I will guide you through a few questions to help identify a vehicle that matches your preferences. What is your budget?
+          </div>
+        </div>
+      </section>
+
+      <section id="summaryPanel" class="summary-panel hidden">
+        <h3>Collected Preferences</h3>
+        <div id="summaryContent"></div>
+      </section>
+
+      <section id="resultsPanel" class="results-panel hidden">
+        <h3>Recommendation Area</h3>
+        <div id="resultsContent"></div>
+      </section>
+
+      <div class="chat-input-area">
+        <input
+          type="text"
+          id="userInput"
+          placeholder="Type your answer..."
+          autocomplete="off"
+        />
+        <button id="sendButton">➤</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
