@@ -5,6 +5,11 @@ const questions = [
       question: "What is your budget?"
     },*/
     {
+      key: "currentVehicle",
+      label: "Current Vehicle",
+      question: "What is your current vehicle's make and model?"
+    },
+    {
       key: "vehicleType",
       label: "Vehicle Type",
       question: "What type of vehicle are you looking for? For example: SUV, sedan, truck, coupe, hatchback, or minivan."
