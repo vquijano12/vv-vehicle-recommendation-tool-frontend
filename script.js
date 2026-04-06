@@ -26,7 +26,7 @@ const questions = [
   },
   */
   {
-    key: "makeAndModel",
+    key: "preferredMakeAndModel",
     label: "Make/Model Preference",
     question:
         "Do you have a preferred make and model? Please type only the make and model, for example: Honda Civic. If you do not have a preference, type 'no preference'."
