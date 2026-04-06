@@ -113,7 +113,8 @@ function handleUserInput() {
       addMessage("Assistant", questions[currentStep].question, "bot-message");
     } else {
       //if all questions asked, validate user input
-
+        console.log(getValidatedInputToDisplay())
+        // code to display user input here!!
       addMessage(
         "Assistant",
         "Thank you! I have collected your preferences. Here is a summary of your answers.",
