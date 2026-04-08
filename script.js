@@ -215,3 +215,11 @@ function showRecommendationPlaceholder() {
     </div>
   `;
 }
+
+const logoutButton = document.getElementById("logoutButton");
+
+if (logoutButton) {
+  logoutButton.addEventListener("click", function () {
+    window.location.href = "auth.html";
+  });
+}
