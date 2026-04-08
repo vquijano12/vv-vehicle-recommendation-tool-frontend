@@ -233,3 +233,27 @@ body {
     max-width: 85%;
   }
 }
+
+.chat-header {
+  background-color: white;
+  border-bottom: 1px solid #ccc;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.logout-button {
+  padding: 10px 16px;
+  border: none;
+  background-color: #2b2b2b;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-button:hover {
+  background-color: #444;
+}
