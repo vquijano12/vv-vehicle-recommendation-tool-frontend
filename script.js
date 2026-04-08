@@ -26,7 +26,7 @@ const questions = [
   },
   */
   {
-    key: "makeAndModel",
+    key: "preferredMakeAndModel",
     label: "Make/Model Preference",
     question:
         "Do you have a preferred make and model? Please type only the make and model, for example: Honda Civic. If you do not have a preference, type 'no preference'."
@@ -56,7 +56,7 @@ let currentStep = 0;
 const userAnswers = {
   currentVehicle: "",
   vehicleType: "",
-  makeAndModel: ""
+  preferredMakeAndModel: ""
 };
 
 const chatBox = document.getElementById("chatBox");
@@ -91,18 +91,18 @@ window.onload = function () {
 
 
 function handleUserInput() {
-  const answer = userInput.value.trim();
+  const answer = userInput.value.trim(); //get user input
 
-  if (answer === "") {
+  if (answer === "") { //prevent empty submission
     return;
   }
 
-  addMessage("You", answer, "user-message");
+  addMessage("You", answer, "user-message"); // displays user's message in the chat
 
   const currentQuestion = questions[currentStep];
 
-  userAnswers[currentQuestion.key] = formatAnswer(currentQuestion.key, answer);
-
+  userAnswers[currentQuestion.key] = formatAnswer(currentQuestion.key, answer); //formats input and stores it in the useAnswers variable
+  console.log(userAnswers)
   userInput.value = "";
   currentStep++;
 
@@ -112,6 +112,9 @@ function handleUserInput() {
     if (currentStep < questions.length) {
       addMessage("Assistant", questions[currentStep].question, "bot-message");
     } else {
+      //if all questions asked, validate user input
+        console.log(getValidatedInputToDisplay())
+        // code to display user input here!!
       addMessage(
         "Assistant",
         "Thank you! I have collected your preferences. Here is a summary of your answers.",
