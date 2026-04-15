@@ -18,6 +18,14 @@ const questions = [
     question:
        "What type of vehicle are you looking for? Please type only one type, for example: SUV, sedan, truck, coupe, hatchback, or minivan. If you do not have a preference, type 'no preference'."
   },
+
+  {
+    key: "yearPreference",
+    label: "Preferred Year",
+    question:
+       "What year do you prefer your vehicle? You can enter a specific year (for example: 2022) or a range (for example: 2018-2022). If you do not have a preference, type 'no preference'."
+  },
+
   /*
   {
     key: "fuelType",
@@ -56,6 +64,7 @@ let currentStep = 0;
 const userAnswers = {
   currentVehicle: "",
   vehicleType: "",
+  yearPreference: "",
   preferredMakeAndModel: ""
 };
 
@@ -145,6 +154,10 @@ function formatAnswer(key, answer) {
 
   if (key === "vehicleType" && cleanedAnswer.toUpperCase() === "SUV") {
     return "SUV";
+  }
+
+  if (key === "yearPreference") {
+    return cleanedAnswer;
   }
 
   return formatTitleCase(cleanedAnswer);
