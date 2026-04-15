@@ -23,13 +23,15 @@ function sendDataToBeValidated(curr_vehicle, preferred_vehicle, preferred_year, 
 
 async function getValidatedInputToDisplay() {
     const response = await sendDataToBeValidated(userAnswers["currentVehicle"], userAnswers["preferredMakeAndModel"], userAnswers["yearPreference"], userAnswers["vehicleType"]);
-    const data = response.data
+    const data = response.data;
     if(response.stage === "validated"){
         return {
             "currMake" : data?.current_vehicle?.make?.name  ?? null,
             "currModel": data?.current_vehicle?.model?.name ?? null,
             "preferredMake": data?.preferred_vehicle?.make?.name ?? null,
             "preferredModel": data?.preferred_vehicle?.model?.name ?? null,
+            "preferredType": data?.preferred_filters?.vehicle_type ?? null,
+            "preferredYear": data?.preferred_filters?.year ?? null
         }
     }
     return null;

@@ -130,9 +130,11 @@ async function showRecommendationsInChat() {
     "bot-message"
   );
 
+
   try {
-    const validatedData = await getValidatedInputToDisplay();
-    console.log("Validated input:", validatedData);
+    /*const validatedData = await getValidatedInputToDisplay();
+    console.log("Validated input:", validatedData);*/
+    await getVehicles();
 
 
   } catch (error) {
