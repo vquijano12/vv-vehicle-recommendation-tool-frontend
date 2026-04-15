@@ -5,7 +5,7 @@ async function sendDataForVehicles(make, year){
         contentType: "application/json",
         dataType: "json",
         data: JSON.stringify({
-            model: model,
+            make: make,
             year: year
         }),
         success: function(response){
@@ -20,7 +20,7 @@ async function sendDataForVehicles(make, year){
 
 async function getVehicles(){
     const validatedInput = await getValidatedInputToDisplay()
-    var make;
+    let make;
     const year = validatedInput["preferredYear"];
 
     if (validatedInput["preferredMake"]){ //if preferred vehicle not null
@@ -32,8 +32,6 @@ async function getVehicles(){
 
     //get vehicles
     const response = await sendDataForVehicles(make, year);
-    const data = response.data;
-
-    console.log(data);
+    console.log(response);
 }
 
