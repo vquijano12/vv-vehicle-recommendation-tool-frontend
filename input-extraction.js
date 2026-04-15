@@ -9,7 +9,7 @@ function sendDataToBeValidated(curr_vehicle, preferred_vehicle, preferred_year, 
             current_vehicle: curr_vehicle,
             preferred_vehicle: preferred_vehicle,
             preferred_year: preferred_year,
-            preferred_type: preferred_type
+            preferred_vehicle_type: preferred_type
         }),
         success: function(response){
             console.log(this.data)
