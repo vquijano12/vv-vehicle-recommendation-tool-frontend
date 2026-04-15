@@ -1,5 +1,5 @@
 //function to send data to the LLM to be analyzed and validated
-function sendDataToBeValidated(curr_vehicle, preferred_vehicle){ //return cleaned input
+function sendDataToBeValidated(curr_vehicle, preferred_vehicle, preferred_year, preferred_type){ //return cleaned input
     return $.ajax({
         type: "POST",
         url: "https://r2lnjwzer4.execute-api.us-east-1.amazonaws.com/dev/analyze-vehicle",
@@ -7,7 +7,9 @@ function sendDataToBeValidated(curr_vehicle, preferred_vehicle){ //return cleane
         dataType: "json",
         data: JSON.stringify({
             current_vehicle: curr_vehicle,
-            preferred_vehicle: preferred_vehicle
+            preferred_vehicle: preferred_vehicle,
+            preferred_year: preferred_year,
+            preferred_type: preferred_type
         }),
         success: function(response){
             console.log(this.data)
@@ -20,7 +22,7 @@ function sendDataToBeValidated(curr_vehicle, preferred_vehicle){ //return cleane
 }
 
 async function getValidatedInputToDisplay() {
-    const response = await sendDataToBeValidated(userAnswers["currentVehicle"], userAnswers["preferredMakeAndModel"]);
+    const response = await sendDataToBeValidated(userAnswers["currentVehicle"], userAnswers["preferredMakeAndModel"], userAnswers["yearPreference"], userAnswers["vehicleType"]);
     const data = response.data
     if(response.stage === "validated"){
         return {
