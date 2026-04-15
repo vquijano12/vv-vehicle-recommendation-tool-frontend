@@ -8,10 +8,6 @@ async function sendDataForVehicles(make, year){
             make: make,
             year: year
         }),
-        success: function(response){
-            console.log(this.data)
-            console.log("Success:", response)
-        },
         error: function(jqxHR, status, error){
             console.log("Error", jqxHR, status, error)
         }
@@ -32,6 +28,6 @@ async function getVehicles(){
 
     //get vehicles
     const response = await sendDataForVehicles(make, year);
-    console.log(response);
+    console.log("Recommended Vehicles: ", response);
 }
 

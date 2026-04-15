@@ -129,11 +129,12 @@ async function showRecommendationsInChat() {
     "Thank you! I have collected your preferences and I am now analyzing them.",
     "bot-message"
   );
-  await getVehicles();
+
 
   try {
-    const validatedData = await getValidatedInputToDisplay();
-    console.log("Validated input:", validatedData);
+    /*const validatedData = await getValidatedInputToDisplay();
+    console.log("Validated input:", validatedData);*/
+    await getVehicles();
 
 
   } catch (error) {
