@@ -72,10 +72,6 @@ const chatBox = document.getElementById("chatBox");
 const userInput = document.getElementById("userInput");
 const sendButton = document.getElementById("sendButton");
 const progressList = document.getElementById("progressList");
-const summaryPanel = document.getElementById("summaryPanel");
-const resultsPanel = document.getElementById("resultsPanel");
-const summaryContent = document.getElementById("summaryContent");
-const resultsContent = document.getElementById("resultsContent");
 
 sendButton.addEventListener("click", handleUserInput);
 
@@ -99,19 +95,19 @@ window.onload = function () {
 };
 
 
+// Handle user input
 function handleUserInput() {
-  const answer = userInput.value.trim(); //get user input
+  const answer = userInput.value.trim();
 
-  if (answer === "") { //prevent empty submission
-    return;
-  }
+  if (answer === "") return;
 
-  addMessage("You", answer, "user-message"); // displays user's message in the chat
+  addMessage("You", answer, "user-message");
 
   const currentQuestion = questions[currentStep];
+  userAnswers[currentQuestion.key] = formatAnswer(currentQuestion.key, answer);
 
-  userAnswers[currentQuestion.key] = formatAnswer(currentQuestion.key, answer); //formats input and stores it in the useAnswers variable
-  console.log(userAnswers)
+  console.log("User Answers:", userAnswers);
+
   userInput.value = "";
   currentStep++;
 
@@ -121,26 +117,41 @@ function handleUserInput() {
     if (currentStep < questions.length) {
       addMessage("Assistant", questions[currentStep].question, "bot-message");
     } else {
-      //if all questions asked, validate user input
-        console.log(getValidatedInputToDisplay())
-        // code to display user input here!!
-      addMessage(
-        "Assistant",
-        "Thank you! I have collected your preferences. Here is a summary of your answers.",
-        "bot-message"
-      );
-
-      showSummary();
-      showRecommendationPlaceholder();
-
-      userInput.disabled = true;
-      sendButton.disabled = true;
-      userInput.placeholder = "Conversation completed";
+      showRecommendationsInChat();
     }
   }, 500);
 }
 
+// Show recommendations
+async function showRecommendationsInChat() {
+  addMessage(
+    "Assistant",
+    "Thank you! I have collected your preferences and I am now analyzing them.",
+    "bot-message"
+  );
 
+  try {
+    const validatedData = await getValidatedInputToDisplay();
+    console.log("Validated input:", validatedData);
+
+
+  } catch (error) {
+    console.error("Validation failed:", error);
+
+    addMessage(
+      "Assistant",
+      "I collected your preferences, but there was an issue validating them. Please try again.",
+      "bot-message"
+    );
+  }
+
+
+userInput.disabled = true;
+  sendButton.disabled = true;
+  userInput.placeholder = "Conversation completed";
+}
+
+// Format answers
 function formatAnswer(key, answer) {
   const cleanedAnswer = answer.trim();
 
@@ -148,7 +159,10 @@ function formatAnswer(key, answer) {
     return "No preference";
   }
 
-  if (cleanedAnswer.toLowerCase() === "no current vehicle") {
+  if (
+    cleanedAnswer.toLowerCase() === "no current vehicle" ||
+    cleanedAnswer.toLowerCase() === "none"
+  ) {
     return "No current vehicle";
   }
 
@@ -163,17 +177,16 @@ function formatAnswer(key, answer) {
   return formatTitleCase(cleanedAnswer);
 }
 
+// Title case helper
 function formatTitleCase(text) {
   return text
     .toLowerCase()
     .split(" ")
-    .map(function (word) {
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
-
+// Add message to chat
 function addMessage(sender, text, className) {
   const messageDiv = document.createElement("div");
   messageDiv.className = `message ${className}`;
@@ -200,37 +213,12 @@ function updateProgress() {
   });
 
   if (currentStep >= questions.length) {
-    listItems.forEach((item) => item.classList.remove("active"));
+    listItems.forEach(item => item.classList.remove("active"));
     listItems[listItems.length - 1].classList.add("active");
   }
 }
 
-
-function showSummary() {
-  summaryPanel.classList.remove("hidden");
-  summaryContent.innerHTML = "";
-
-  questions.forEach((question) => {
-    const div = document.createElement("div");
-    div.className = "summary-item";
-    div.innerHTML = `<strong>${question.label}:</strong> ${userAnswers[question.key]}`;
-    summaryContent.appendChild(div);
-  });
-}
-
-
-function showRecommendationPlaceholder() {
-  resultsPanel.classList.remove("hidden");
-  resultsContent.innerHTML = `
-    <div class="result-card">
-      <h4>Recommendations</h4>
-      <p>I am analyzing your preferences to find the best matches for you.</p>
-    </div>
-  `;
-}
-
-const logoutButton = document.getElementById("logoutButton");
-
+// Logout button
 if (logoutButton) {
   logoutButton.addEventListener("click", function () {
     window.location.href = "auth.html";
