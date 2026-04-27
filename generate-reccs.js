@@ -35,3 +35,20 @@ async function getVehicles(){
     rankedVehicles = response?.rankedVehicles ?? null
     console.log("Recommended Vehicles: ", rankedVehicles);
 }
+
+
+async function converse(question, vehicleList){
+    return $.ajax({
+        type:"POST",
+        url: "https://r2lnjwzer4.execute-api.us-east-1.amazonaws.com/dev/vehicle-pool",
+        contentType: "application/json",
+        dataTyoe:"json",
+        data: JSON.stringify({
+            question: question,
+            rankedVehicles: vehicleList
+        }),
+        error: function(jqxHR, status, error){
+            console.log("Error", jqxHR, status, error)
+        }
+    })
+}
