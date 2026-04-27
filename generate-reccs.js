@@ -36,7 +36,7 @@ async function getVehicles(){
     console.log("Recommended Vehicles: ", rankedVehicles);
 }
 
-
+//send question to system
 async function converse(question, vehicleList){
     return $.ajax({
         type:"POST",
@@ -51,4 +51,12 @@ async function converse(question, vehicleList){
             console.log("Error", jqxHR, status, error)
         }
     })
+}
+
+//get LLM response to question
+// can use converse method directly but this helps simplify
+// and only returns the answer
+async function getLLMResponse(question){
+    const response = await converse(question, rankedVehicles)
+    return response?.answer ?? null
 }
