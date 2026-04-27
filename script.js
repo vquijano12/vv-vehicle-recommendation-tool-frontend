@@ -221,42 +221,7 @@ function handleUserInput() {
   }, 500);
 }
 
-// Show recommendations
 
-/*
-async function showRecommendationsInChat() {
-  addMessage(
-    "Assistant",
-    "Thank you! I have collected your preferences and I am now analyzing them.",
-    "bot-message"
-  );
-
-
-  try {
-    /*const validatedData = await getValidatedInputToDisplay();
-    console.log("Validated input:", validatedData);
-    await getVehicles();
-
-    /* !!! TESTING -- remove later  */
-    const answer = await getLLMResponse("Which vehicle is the safest?");
-
-  } catch (error) {
-    console.error("Validation failed:", error);
-
-    addMessage(
-      "Assistant",
-      "I collected your preferences, but there was an issue validating them. Please try again.",
-      "bot-message"
-    );
-  }
-
-
-  userInput.disabled = true;
-  sendButton.disabled = true;
-  userInput.placeholder = "Conversation completed";
-}
-
-*/
 
 
 async function showRecommendationsInChat() {
@@ -275,6 +240,11 @@ async function showRecommendationsInChat() {
 
   try {
     await getVehicles();
+
+    await getLLMResponse(
+      "Explain why these 3 vehicles are good recommendations using bullet points. For each vehicle, include the score, recall count, severity weight, complaint count, and one short explanation. Keep each bullet concise."
+    );
+
     userInput.placeholder = "Please log in to continue...";
   } catch (error) {
     console.error("Error generating recommendations:", error);
@@ -288,7 +258,6 @@ async function showRecommendationsInChat() {
     userInput.placeholder = "Please log in to continue...";
   }
 }
-
 
 // Format answers
 function formatAnswer(key, answer) {

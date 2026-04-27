@@ -1,5 +1,9 @@
 let rankedVehicles = [];
 
+// Store selected make/year globally
+window.lastSelectedMake = "";
+window.lastSelectedYear = "";
+
 // Send vehicle preference data to backend
 async function sendDataForVehicles(make, year) {
   return $.ajax({
@@ -30,21 +34,19 @@ function displayRecommendationsInChat(recommendedVehicles) {
     message += "No vehicle recommendations were found.";
   } else {
     vehicles.slice(0, 3).forEach((vehicle, index) => {
-      const make =
-        vehicle.Make_Name ||
-        vehicle.make ||
-        vehicle.makeName ||
-        vehicle.Make ||
-        "Unknown Make";
-
       const model =
-        vehicle.Model_Name ||
         vehicle.model ||
-        vehicle.modelName ||
         vehicle.Model ||
+        vehicle.Model_Name ||
+        vehicle.modelName ||
+        vehicle.vehicle_model ||
         "Unknown Model";
 
-      message += `${index + 1}. ${make} ${model}<br>`;
+      // 👇 Use stored make/year since backend doesn't provide them
+      const make = window.lastSelectedMake || "";
+      const year = window.lastSelectedYear || "";
+
+      message += `${index + 1}. ${year} ${make} ${model}<br>`;
     });
   }
 
@@ -92,6 +94,9 @@ async function getVehicles() {
     make = validatedInput["currMake"];
   }
 
+  window.lastSelectedMake = make;
+  window.lastSelectedYear = year;
+
   const response = await sendDataForVehicles(make, year);
 
   rankedVehicles = response?.rankedVehicles || response?.results || [];
@@ -120,7 +125,10 @@ async function converse(question, vehicleList) {
   });
 }
 
+
 // Get LLM response and display it in chat
+
+/*
 async function getLLMResponse(question) {
   const response = await converse(question, rankedVehicles);
   const llmAnswer = response?.answer ?? "Sorry, I could not get a response.";
@@ -133,4 +141,35 @@ async function getLLMResponse(question) {
   }
 
   return llmAnswer;
-}
+} */
+
+  // Get LLM response and display it in chat
+  async function getLLMResponse(question) {
+    const response = await converse(question, rankedVehicles);
+    let llmAnswer = response?.answer ?? "Sorry, I could not get a response.";
+  
+    console.log("Question:", question);
+    console.log("LLM Response:", llmAnswer);
+  
+    llmAnswer = llmAnswer
+      .replace(/\*\*/g, "")
+      .replace(/\n\s*\n/g, "\n")
+      .replace(/•\s*/g, "\n• ")
+      .replace(/\n/g, "<br>");
+  
+    llmAnswer = `
+      <div class="llm-response">
+        <strong>Why these vehicles match:</strong>
+        ${llmAnswer}
+      </div>
+    `;
+  
+    if (typeof window.addMessage === "function") {
+      window.addMessage("Assistant", llmAnswer, "bot-message");
+    }
+  
+    return llmAnswer;
+  }
+
+
+
