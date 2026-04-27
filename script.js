@@ -60,6 +60,7 @@ const questions = [
 ];
 
 let currentStep = 0;
+let isGeneratingRecommendations = false;
 
 const userAnswers = {
   currentVehicle: "",
@@ -67,6 +68,47 @@ const userAnswers = {
   yearPreference: "",
   preferredMakeAndModel: ""
 };
+
+function saveConversationState() {
+  sessionStorage.setItem("vv_currentStep", currentStep);
+  sessionStorage.setItem("vv_userAnswers", JSON.stringify(userAnswers));
+  sessionStorage.setItem("vv_chatHtml", chatBox.innerHTML);
+  sessionStorage.setItem("vv_isGeneratingRecommendations", JSON.stringify(isGeneratingRecommendations));
+}
+
+window.saveConversationState = function () {
+  sessionStorage.setItem("vv_currentStep", currentStep);
+  sessionStorage.setItem("vv_userAnswers", JSON.stringify(userAnswers));
+  sessionStorage.setItem("vv_chatHtml", chatBox.innerHTML);
+  sessionStorage.setItem("vv_isGeneratingRecommendations", JSON.stringify(isGeneratingRecommendations));
+};
+
+window.restoreConversationState = function () {
+  const savedStep = sessionStorage.getItem("vv_currentStep");
+  const savedAnswers = sessionStorage.getItem("vv_userAnswers");
+  const savedChatHtml = sessionStorage.getItem("vv_chatHtml");
+  const savedGeneratingState = sessionStorage.getItem("vv_isGeneratingRecommendations");
+
+  if (savedAnswers) {
+    const parsedAnswers = JSON.parse(savedAnswers);
+    Object.assign(userAnswers, parsedAnswers);
+  }
+
+  if (savedStep !== null) {
+    currentStep = parseInt(savedStep, 10);
+  }
+
+  if (savedChatHtml) {
+    chatBox.innerHTML = savedChatHtml;
+  }
+
+  if (savedGeneratingState) {
+    isGeneratingRecommendations = JSON.parse(savedGeneratingState);
+  }
+
+  updateProgress();
+};
+
 
 const chatBox = document.getElementById("chatBox");
 const userInput = document.getElementById("userInput");
@@ -81,30 +123,86 @@ userInput.addEventListener("keypress", function (event) {
   }
 });
 
+chatBox.addEventListener("click", function (event) {
+  if (!event.target.classList.contains("edit-answer-btn")) return;
 
-window.onload = function () {
-  addMessage(
-    "Assistant",
-    "Hello! I will guide you through a few questions to help identify a vehicle that matches your preferences.",
-    "bot-message"
-  );
+  const key = event.target.dataset.key;
+  const oldValue = userAnswers[key] || "";
 
-  setTimeout(() => {
-    addMessage("Assistant", questions[0].question, "bot-message");
-  }, 1000);
+  const newValue = prompt("Edit your answer:", oldValue);
+
+  if (newValue === null) return;
+  if (newValue.trim() === "") return;
+
+  userAnswers[key] = formatAnswer(key, newValue.trim());
+
+  const messageDiv = event.target.closest(".message");
+  const messageText = messageDiv.querySelector(".message-text");
+  messageText.textContent = userAnswers[key];
+
+  sessionStorage.removeItem("hasSeenFreeRecommendations");
+
+  if (typeof window.saveConversationState === "function") {
+    window.saveConversationState();
+  }
+});
+
+
+window.onload = async function () {
+  window.restoreConversationState();
+
+  const hasSavedChat = sessionStorage.getItem("vv_chatHtml");
+
+  if (!hasSavedChat) {
+    addMessage(
+      "Assistant",
+      "Hello! I will guide you through a few questions to help identify a vehicle that matches your preferences.",
+      "bot-message"
+    );
+
+    setTimeout(() => {
+      addMessage("Assistant", questions[0].question, "bot-message");
+      window.saveConversationState();
+    }, 1000);
+  } else {
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  if (typeof window.updateTopRightAuthButton === "function") {
+    await window.updateTopRightAuthButton();
+  }
+
+  const isAuthenticated =
+    typeof window.isUserAuthenticated === "function"
+      ? await window.isUserAuthenticated()
+      : false;
+
+  if (isAuthenticated) {
+    const authPrompt = document.getElementById("authPromptBox");
+    if (authPrompt) authPrompt.remove();
+
+    userInput.placeholder = "You are signed in.";
+    window.saveConversationState();
+  }
 };
 
 
 // Handle user input
 function handleUserInput() {
+
+  if (isGeneratingRecommendations) return;
+  
   const answer = userInput.value.trim();
 
   if (answer === "") return;
 
-  addMessage("You", answer, "user-message");
-
   const currentQuestion = questions[currentStep];
+  addMessage("You", answer, "user-message", currentQuestion.key);
+
   userAnswers[currentQuestion.key] = formatAnswer(currentQuestion.key, answer);
+  window.saveConversationState();
+
+  saveConversationState();
 
   console.log("User Answers:", userAnswers);
 
@@ -116,6 +214,7 @@ function handleUserInput() {
   setTimeout(() => {
     if (currentStep < questions.length) {
       addMessage("Assistant", questions[currentStep].question, "bot-message");
+      window.saveConversationState();
     } else {
       showRecommendationsInChat();
     }
@@ -123,6 +222,8 @@ function handleUserInput() {
 }
 
 // Show recommendations
+
+/*
 async function showRecommendationsInChat() {
   addMessage(
     "Assistant",
@@ -133,7 +234,7 @@ async function showRecommendationsInChat() {
 
   try {
     /*const validatedData = await getValidatedInputToDisplay();
-    console.log("Validated input:", validatedData);*/
+    console.log("Validated input:", validatedData);
     await getVehicles();
 
 
@@ -152,6 +253,40 @@ userInput.disabled = true;
   sendButton.disabled = true;
   userInput.placeholder = "Conversation completed";
 }
+
+*/
+
+
+async function showRecommendationsInChat() {
+  if (isGeneratingRecommendations) return;
+  isGeneratingRecommendations = true;
+
+  addMessage(
+    "Assistant",
+    "Thank you! I have collected your preferences and I am now generating your recommendations.",
+    "bot-message"
+  );
+
+  userInput.disabled = true;
+  sendButton.disabled = true;
+  userInput.placeholder = "Generating recommendations...";
+
+  try {
+    await getVehicles();
+    userInput.placeholder = "Please log in to continue...";
+  } catch (error) {
+    console.error("Error generating recommendations:", error);
+
+    addMessage(
+      "Assistant",
+      "There was an issue generating your vehicle recommendations. Please try again.",
+      "bot-message"
+    );
+
+    userInput.placeholder = "Please log in to continue...";
+  }
+}
+
 
 // Format answers
 function formatAnswer(key, answer) {
@@ -179,6 +314,52 @@ function formatAnswer(key, answer) {
   return formatTitleCase(cleanedAnswer);
 }
 
+window.saveConversationState = function () {
+  sessionStorage.setItem("vv_currentStep", currentStep);
+  sessionStorage.setItem("vv_userAnswers", JSON.stringify(userAnswers));
+  sessionStorage.setItem("vv_chatHtml", chatBox.innerHTML);
+  sessionStorage.setItem("vv_isGeneratingRecommendations", JSON.stringify(isGeneratingRecommendations));
+  sessionStorage.setItem("vv_inputDisabled", JSON.stringify(userInput.disabled));
+  sessionStorage.setItem("vv_inputPlaceholder", userInput.placeholder);
+};
+
+window.restoreConversationState = function () {
+  const savedStep = sessionStorage.getItem("vv_currentStep");
+  const savedAnswers = sessionStorage.getItem("vv_userAnswers");
+  const savedChatHtml = sessionStorage.getItem("vv_chatHtml");
+  const savedGeneratingState = sessionStorage.getItem("vv_isGeneratingRecommendations");
+  const savedInputDisabled = sessionStorage.getItem("vv_inputDisabled");
+  const savedPlaceholder = sessionStorage.getItem("vv_inputPlaceholder");
+
+  if (savedAnswers) {
+    Object.assign(userAnswers, JSON.parse(savedAnswers));
+  }
+
+  if (savedStep !== null) {
+    currentStep = parseInt(savedStep, 10);
+  }
+
+  if (savedChatHtml) {
+    chatBox.innerHTML = savedChatHtml;
+  }
+
+  if (savedGeneratingState) {
+    isGeneratingRecommendations = JSON.parse(savedGeneratingState);
+  }
+
+  if (savedInputDisabled !== null) {
+    userInput.disabled = JSON.parse(savedInputDisabled);
+    sendButton.disabled = JSON.parse(savedInputDisabled);
+  }
+
+  if (savedPlaceholder) {
+    userInput.placeholder = savedPlaceholder;
+  }
+
+  updateProgress();
+};
+
+
 // Title case helper
 function formatTitleCase(text) {
   return text
@@ -189,19 +370,29 @@ function formatTitleCase(text) {
 }
 
 // Add message to chat
-function addMessage(sender, text, className) {
+window.addMessage = function (sender, text, className, answerKey = null) {
   const messageDiv = document.createElement("div");
   messageDiv.className = `message ${className}`;
+
+  let editButton = "";
+
+  if (className === "user-message" && answerKey) {
+    editButton = `<button class="edit-answer-btn" data-key="${answerKey}">Edit</button>`;
+  }
 
   messageDiv.innerHTML = `
     <div class="message-label">${sender}</div>
     <div class="message-text">${text}</div>
+    ${editButton}
   `;
 
   chatBox.appendChild(messageDiv);
   chatBox.scrollTop = chatBox.scrollHeight;
-}
 
+  if (typeof window.saveConversationState === "function") {
+    window.saveConversationState();
+  }
+};
 
 function updateProgress() {
   const listItems = progressList.querySelectorAll("li");
@@ -220,9 +411,4 @@ function updateProgress() {
   }
 }
 
-// Logout button
-if (logoutButton) {
-  logoutButton.addEventListener("click", function () {
-    window.location.href = "auth.html";
-  });
-}
+

@@ -257,3 +257,68 @@ body {
 .logout-button:hover {
   background-color: #444;
 }
+
+.auth-action-buttons {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.auth-action-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background-color: #2b2b2b;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.auth-action-btn.secondary {
+  background-color: #f2f2f2;
+  color: #2b2b2b;
+  border: 1px solid #ccc;
+}
+
+.auth-action-btn:hover {
+  opacity: 0.95;
+}
+
+.edit-answer-btn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background-color: #f2f2f2;
+  color: #2b2b2b;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.edit-answer-btn:hover {
+  background-color: #e6e6e6;
+}
+
+.auth-action-buttons {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.auth-action-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background-color: #2b2b2b;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.auth-action-btn.secondary {
+  background-color: #f2f2f2;
+  color: #2b2b2b;
+  border: 1px solid #ccc;
+}
