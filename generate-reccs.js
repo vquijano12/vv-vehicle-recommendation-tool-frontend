@@ -1,3 +1,5 @@
+let rankedVehicles = [];
+
 async function sendDataForVehicles(make, year){
     return $.ajax({
         type: "POST",
@@ -28,6 +30,8 @@ async function getVehicles(){
 
     //get vehicles
     const response = await sendDataForVehicles(make, year);
-    console.log("Recommended Vehicles: ", response);
-}
 
+    // store ranked vehicles in a global variable
+    rankedVehicles = response?.rankedVehicles ?? null
+    console.log("Recommended Vehicles: ", rankedVehicles);
+}
