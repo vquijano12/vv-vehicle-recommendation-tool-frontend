@@ -10,20 +10,20 @@ const questions = [
     key: "currentVehicle",
     label: "Current Vehicle",
     question:
-       "What is your current vehicle's make and model? Please type only the make and model, for example: Toyota Camry. If you do not currently have a vehicle, type 'none'."
+      "What is your current vehicle's make and model? Please type only the make and model, for example: Toyota Camry. If you do not currently have a vehicle, type 'none'.",
   },
   {
     key: "vehicleType",
     label: "Vehicle Type",
     question:
-       "What type of vehicle are you looking for? Please type only one type, for example: SUV, sedan, truck, coupe, hatchback, or minivan. If you do not have a preference, type 'no preference'."
+      "What type of vehicle are you looking for? Please type only one type, for example: SUV, sedan, truck, coupe, hatchback, or minivan. If you do not have a preference, type 'no preference'.",
   },
 
   {
     key: "yearPreference",
     label: "Preferred Year",
     question:
-       "What year do you prefer your vehicle? You can enter a specific year (for example: 2022) or a range (for example: 2018-2022). If you do not have a preference, type 'no preference'."
+      "What year do you prefer your vehicle? You can enter a specific year (for example: 2022) or a range (for example: 2018-2022). If you do not have a preference, type 'no preference'.",
   },
 
   /*
@@ -37,8 +37,8 @@ const questions = [
     key: "preferredMakeAndModel",
     label: "Make/Model Preference",
     question:
-        "Do you have a preferred make and model? Please type only the make and model, for example: Honda Civic. If you do not have a preference, type 'no preference'."
-  }
+      "Do you have a preferred make and model? Please type only the make and model, for example: Honda Civic. If you do not have a preference, type 'no preference'.",
+  },
   /*
   ,
   {
@@ -59,61 +59,24 @@ const questions = [
   */
 ];
 
+
 let currentStep = 0;
 let isGeneratingRecommendations = false;
+let chatMode = false;
+let awaitingLLM = false;
 
 const userAnswers = {
   currentVehicle: "",
   vehicleType: "",
   yearPreference: "",
-  preferredMakeAndModel: ""
+  preferredMakeAndModel: "",
 };
-
-function saveConversationState() {
-  sessionStorage.setItem("vv_currentStep", currentStep);
-  sessionStorage.setItem("vv_userAnswers", JSON.stringify(userAnswers));
-  sessionStorage.setItem("vv_chatHtml", chatBox.innerHTML);
-  sessionStorage.setItem("vv_isGeneratingRecommendations", JSON.stringify(isGeneratingRecommendations));
-}
-
-window.saveConversationState = function () {
-  sessionStorage.setItem("vv_currentStep", currentStep);
-  sessionStorage.setItem("vv_userAnswers", JSON.stringify(userAnswers));
-  sessionStorage.setItem("vv_chatHtml", chatBox.innerHTML);
-  sessionStorage.setItem("vv_isGeneratingRecommendations", JSON.stringify(isGeneratingRecommendations));
-};
-
-window.restoreConversationState = function () {
-  const savedStep = sessionStorage.getItem("vv_currentStep");
-  const savedAnswers = sessionStorage.getItem("vv_userAnswers");
-  const savedChatHtml = sessionStorage.getItem("vv_chatHtml");
-  const savedGeneratingState = sessionStorage.getItem("vv_isGeneratingRecommendations");
-
-  if (savedAnswers) {
-    const parsedAnswers = JSON.parse(savedAnswers);
-    Object.assign(userAnswers, parsedAnswers);
-  }
-
-  if (savedStep !== null) {
-    currentStep = parseInt(savedStep, 10);
-  }
-
-  if (savedChatHtml) {
-    chatBox.innerHTML = savedChatHtml;
-  }
-
-  if (savedGeneratingState) {
-    isGeneratingRecommendations = JSON.parse(savedGeneratingState);
-  }
-
-  updateProgress();
-};
-
 
 const chatBox = document.getElementById("chatBox");
 const userInput = document.getElementById("userInput");
 const sendButton = document.getElementById("sendButton");
 const progressList = document.getElementById("progressList");
+const logoutButton = document.getElementById("logoutButton");
 
 sendButton.addEventListener("click", handleUserInput);
 
@@ -146,7 +109,6 @@ chatBox.addEventListener("click", function (event) {
     window.saveConversationState();
   }
 });
-
 
 window.onload = async function () {
   window.restoreConversationState();
@@ -181,48 +143,72 @@ window.onload = async function () {
     const authPrompt = document.getElementById("authPromptBox");
     if (authPrompt) authPrompt.remove();
 
-    userInput.placeholder = "You are signed in.";
+    userInput.placeholder = chatMode
+      ? "Ask a question about the recommendations..."
+      : "You are signed in.";
+
     window.saveConversationState();
   }
 };
 
+async function handleUserInput() {
+  if (isGeneratingRecommendations || awaitingLLM) return;
 
-// Handle user input
-function handleUserInput() {
-
-  if (isGeneratingRecommendations) return;
-  
   const answer = userInput.value.trim();
-
   if (answer === "") return;
 
-  const currentQuestion = questions[currentStep];
-  addMessage("You", answer, "user-message", currentQuestion.key);
+  if (!chatMode) {
+    const currentQuestion = questions[currentStep];
 
-  userAnswers[currentQuestion.key] = formatAnswer(currentQuestion.key, answer);
-  window.saveConversationState();
+    addMessage("You", answer, "user-message", currentQuestion.key);
 
-  saveConversationState();
+    userAnswers[currentQuestion.key] = formatAnswer(currentQuestion.key, answer);
 
-  console.log("User Answers:", userAnswers);
+    console.log("User Answers:", userAnswers);
 
-  userInput.value = "";
-  currentStep++;
+    userInput.value = "";
+    currentStep++;
+    updateProgress();
+    window.saveConversationState();
 
-  updateProgress();
-
-  setTimeout(() => {
     if (currentStep < questions.length) {
-      addMessage("Assistant", questions[currentStep].question, "bot-message");
-      window.saveConversationState();
+      setTimeout(() => {
+        addMessage("Assistant", questions[currentStep].question, "bot-message");
+        window.saveConversationState();
+      }, 500);
     } else {
-      showRecommendationsInChat();
+      chatMode = true;
+      await showRecommendationsInChat();
     }
-  }, 500);
+
+    return;
+  }
+
+  addMessage("You", answer, "user-message");
+  userInput.value = "";
+
+  awaitingLLM = true;
+  sendButton.disabled = true;
+  userInput.disabled = true;
+
+  try {
+    await getLLMResponse(answer);
+  } catch (error) {
+    console.error(error);
+    addMessage(
+      "Assistant",
+      "There was an error getting a response.",
+      "bot-message"
+    );
+  } finally {
+    awaitingLLM = false;
+    sendButton.disabled = false;
+    userInput.disabled = false;
+    userInput.placeholder = "Ask a question about the recommendations...";
+    userInput.focus();
+    window.saveConversationState();
+  }
 }
-
-
-
 
 async function showRecommendationsInChat() {
   if (isGeneratingRecommendations) return;
@@ -245,7 +231,10 @@ async function showRecommendationsInChat() {
       "Explain why these 3 vehicles are good recommendations using bullet points. For each vehicle, include the score, recall count, severity weight, complaint count, and one short explanation. Keep each bullet concise."
     );
 
-    userInput.placeholder = "Please log in to continue...";
+    userInput.disabled = false;
+    sendButton.disabled = false;
+    userInput.placeholder = "Ask a question about the recommendations...";
+    chatMode = true;
   } catch (error) {
     console.error("Error generating recommendations:", error);
 
@@ -256,10 +245,12 @@ async function showRecommendationsInChat() {
     );
 
     userInput.placeholder = "Please log in to continue...";
+  } finally {
+    isGeneratingRecommendations = false;
+    window.saveConversationState();
   }
 }
 
-// Format answers
 function formatAnswer(key, answer) {
   const cleanedAnswer = answer.trim();
 
@@ -289,7 +280,11 @@ window.saveConversationState = function () {
   sessionStorage.setItem("vv_currentStep", currentStep);
   sessionStorage.setItem("vv_userAnswers", JSON.stringify(userAnswers));
   sessionStorage.setItem("vv_chatHtml", chatBox.innerHTML);
-  sessionStorage.setItem("vv_isGeneratingRecommendations", JSON.stringify(isGeneratingRecommendations));
+  sessionStorage.setItem(
+    "vv_isGeneratingRecommendations",
+    JSON.stringify(isGeneratingRecommendations)
+  );
+  sessionStorage.setItem("vv_chatMode", JSON.stringify(chatMode));
   sessionStorage.setItem("vv_inputDisabled", JSON.stringify(userInput.disabled));
   sessionStorage.setItem("vv_inputPlaceholder", userInput.placeholder);
 };
@@ -298,7 +293,10 @@ window.restoreConversationState = function () {
   const savedStep = sessionStorage.getItem("vv_currentStep");
   const savedAnswers = sessionStorage.getItem("vv_userAnswers");
   const savedChatHtml = sessionStorage.getItem("vv_chatHtml");
-  const savedGeneratingState = sessionStorage.getItem("vv_isGeneratingRecommendations");
+  const savedGeneratingState = sessionStorage.getItem(
+    "vv_isGeneratingRecommendations"
+  );
+  const savedChatMode = sessionStorage.getItem("vv_chatMode");
   const savedInputDisabled = sessionStorage.getItem("vv_inputDisabled");
   const savedPlaceholder = sessionStorage.getItem("vv_inputPlaceholder");
 
@@ -318,6 +316,10 @@ window.restoreConversationState = function () {
     isGeneratingRecommendations = JSON.parse(savedGeneratingState);
   }
 
+  if (savedChatMode) {
+    chatMode = JSON.parse(savedChatMode);
+  }
+
   if (savedInputDisabled !== null) {
     userInput.disabled = JSON.parse(savedInputDisabled);
     sendButton.disabled = JSON.parse(savedInputDisabled);
@@ -330,17 +332,14 @@ window.restoreConversationState = function () {
   updateProgress();
 };
 
-
-// Title case helper
 function formatTitleCase(text) {
   return text
     .toLowerCase()
     .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
-// Add message to chat
 window.addMessage = function (sender, text, className, answerKey = null) {
   const messageDiv = document.createElement("div");
   messageDiv.className = `message ${className}`;
@@ -377,9 +376,13 @@ function updateProgress() {
   });
 
   if (currentStep >= questions.length) {
-    listItems.forEach(item => item.classList.remove("active"));
+    listItems.forEach((item) => item.classList.remove("active"));
     listItems[listItems.length - 1].classList.add("active");
   }
 }
 
-
+if (logoutButton) {
+  logoutButton.addEventListener("click", function () {
+    window.location.href = "auth.html";
+  });
+}
