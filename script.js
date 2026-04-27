@@ -10,20 +10,20 @@ const questions = [
     key: "currentVehicle",
     label: "Current Vehicle",
     question:
-       "What is your current vehicle's make and model? Please type only the make and model, for example: Toyota Camry. If you do not currently have a vehicle, type 'none'."
+      "What is your current vehicle's make and model? Please type only the make and model, for example: Toyota Camry. If you do not currently have a vehicle, type 'none'.",
   },
   {
     key: "vehicleType",
     label: "Vehicle Type",
     question:
-       "What type of vehicle are you looking for? Please type only one type, for example: SUV, sedan, truck, coupe, hatchback, or minivan. If you do not have a preference, type 'no preference'."
+      "What type of vehicle are you looking for? Please type only one type, for example: SUV, sedan, truck, coupe, hatchback, or minivan. If you do not have a preference, type 'no preference'.",
   },
 
   {
     key: "yearPreference",
     label: "Preferred Year",
     question:
-       "What year do you prefer your vehicle? You can enter a specific year (for example: 2022) or a range (for example: 2018-2022). If you do not have a preference, type 'no preference'."
+      "What year do you prefer your vehicle? You can enter a specific year (for example: 2022) or a range (for example: 2018-2022). If you do not have a preference, type 'no preference'.",
   },
 
   /*
@@ -37,8 +37,8 @@ const questions = [
     key: "preferredMakeAndModel",
     label: "Make/Model Preference",
     question:
-        "Do you have a preferred make and model? Please type only the make and model, for example: Honda Civic. If you do not have a preference, type 'no preference'."
-  }
+      "Do you have a preferred make and model? Please type only the make and model, for example: Honda Civic. If you do not have a preference, type 'no preference'.",
+  },
   /*
   ,
   {
@@ -60,12 +60,14 @@ const questions = [
 ];
 
 let currentStep = 0;
+let chatMode = false;
+let awaitingLLM = false;
 
 const userAnswers = {
   currentVehicle: "",
   vehicleType: "",
   yearPreference: "",
-  preferredMakeAndModel: ""
+  preferredMakeAndModel: "",
 };
 
 const chatBox = document.getElementById("chatBox");
@@ -81,12 +83,11 @@ userInput.addEventListener("keypress", function (event) {
   }
 });
 
-
 window.onload = function () {
   addMessage(
     "Assistant",
     "Hello! I will guide you through a few questions to help identify a vehicle that matches your preferences.",
-    "bot-message"
+    "bot-message",
   );
 
   setTimeout(() => {
@@ -94,42 +95,75 @@ window.onload = function () {
   }, 1000);
 };
 
-
 // Handle user input
-function handleUserInput() {
+async function handleUserInput() {
+  if (awaitingLLM) return;
+
   const answer = userInput.value.trim();
 
   if (answer === "") return;
 
   addMessage("You", answer, "user-message");
-
-  const currentQuestion = questions[currentStep];
-  userAnswers[currentQuestion.key] = formatAnswer(currentQuestion.key, answer);
-
-  console.log("User Answers:", userAnswers);
-
   userInput.value = "";
-  currentStep++;
 
-  updateProgress();
+  if (!chatMode) {
+    const currentQuestion = questions[currentStep];
+    userAnswers[currentQuestion.key] = formatAnswer(
+      currentQuestion.key,
+      answer,
+    );
 
-  setTimeout(() => {
+    console.log("User Answers:", userAnswers);
+
+    currentStep++;
+    updateProgress();
+
     if (currentStep < questions.length) {
-      addMessage("Assistant", questions[currentStep].question, "bot-message");
-    } else {
-      showRecommendationsInChat();
+      setTimeout(() => {
+        addMessage("Assistant", questions[currentStep].question, "bot-message");
+      }, 500);
+      return;
     }
-  }, 500);
+
+    chatMode = true;
+    await showRecommendationsChat();
+    return;
+  }
+
+  awaitingLLM = true;
+  sendButton.disabled = true;
+  userInput.disabled = true;
+
+  try {
+    const answerText = await getLLMResponse(answer);
+    addMessage(
+      "Assistant",
+      answerText || "I could not generate a response.",
+      "bot-message",
+    );
+  } catch (error) {
+    console.error(error);
+    addMessage(
+      "Assistant",
+      "There was an error getting a response.",
+      "bot-message",
+    );
+  } finally {
+    awaitingLLM = false;
+    sendButton.disabled = false;
+    userInput.disabled = false;
+    userInput.placeholder = "Ask a question about the recommendations...";
+    userInput.focus();
+  }
 }
 
 // Show recommendations
-async function showRecommendationsInChat() {
+async function showRecommendationsChat() {
   addMessage(
     "Assistant",
     "Thank you! I have collected your preferences and I am now analyzing them.",
-    "bot-message"
+    "bot-message",
   );
-
 
   try {
     /*const validatedData = await getValidatedInputToDisplay();
@@ -137,22 +171,50 @@ async function showRecommendationsInChat() {
     await getVehicles();
 
     /* !!! TESTING -- remove later  */
-    const answer = await getLLMResponse("Which vehicle is the safest?");
+    //   const answer = await getLLMResponse("Which vehicle is the safest?");
+    // } catch (error) {
+    //   console.error("Validation failed:", error);
 
+    // addMessage(
+    //   "Assistant",
+    //   "You can now ask follow-up questions about the recommended vehicles.",
+    //   "bot-message",
+    // );
+
+    if (rankedVehicles && rankedVehicles.length > 0) {
+      const vehicleList = rankedVehicles
+        .map(
+          (vehicle, index) =>
+            `${index + 1}. ${vehicle.make} ${vehicle.model}`,
+        )
+        .join("\n");
+
+      addMessage(
+        "Assistant",
+        `Here are the recommended vehicles for you:\n\n${vehicleList}\n\nFeel free to ask me any questions about these vehicles!`,
+        "bot-message",
+      );
+    } else {
+      addMessage(
+        "Assistant",
+        "I couldn't find any vehicle recommendations. Please try again.",
+        "bot-message",
+      );
+    }
+
+    userInput.placeholder = "Ask a question about the recommendations...";
   } catch (error) {
     console.error("Validation failed:", error);
-
     addMessage(
       "Assistant",
-      "I collected your preferences, but there was an issue validating them. Please try again.",
-      "bot-message"
+      "I collected your preferences, but there was an issue generating recommendations.",
+      "bot-message",
     );
   }
 
-
-  userInput.disabled = true;
-  sendButton.disabled = true;
-  userInput.placeholder = "Conversation completed";
+  // userInput.disabled = true;
+  // sendButton.disabled = true;
+  // userInput.placeholder = "Conversation completed";
 }
 
 // Format answers
@@ -186,7 +248,7 @@ function formatTitleCase(text) {
   return text
     .toLowerCase()
     .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
@@ -204,7 +266,6 @@ function addMessage(sender, text, className) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-
 function updateProgress() {
   const listItems = progressList.querySelectorAll("li");
 
@@ -217,7 +278,7 @@ function updateProgress() {
   });
 
   if (currentStep >= questions.length) {
-    listItems.forEach(item => item.classList.remove("active"));
+    listItems.forEach((item) => item.classList.remove("active"));
     listItems[listItems.length - 1].classList.add("active");
   }
 }
