@@ -136,6 +136,8 @@ async function showRecommendationsInChat() {
     console.log("Validated input:", validatedData);*/
     await getVehicles();
 
+    /* !!! TESTING -- remove later  */
+    const answer = await getLLMResponse("Which vehicle is the safest?");
 
   } catch (error) {
     console.error("Validation failed:", error);
@@ -148,7 +150,7 @@ async function showRecommendationsInChat() {
   }
 
 
-userInput.disabled = true;
+  userInput.disabled = true;
   sendButton.disabled = true;
   userInput.placeholder = "Conversation completed";
 }

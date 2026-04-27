@@ -1,3 +1,5 @@
+let rankedVehicles = [];
+
 async function sendDataForVehicles(make, year){
     return $.ajax({
         type: "POST",
@@ -28,6 +30,36 @@ async function getVehicles(){
 
     //get vehicles
     const response = await sendDataForVehicles(make, year);
-    console.log("Recommended Vehicles: ", response);
+
+    // store ranked vehicles in a global variable
+    rankedVehicles = response?.rankedVehicles ?? [];
+    console.log("Recommended Vehicles: ", rankedVehicles);
 }
 
+//send question to system
+async function converse(question, vehicleList){
+    return $.ajax({
+        type:"POST",
+        url: "https://r2lnjwzer4.execute-api.us-east-1.amazonaws.com/dev/vehicle-pool",
+        contentType: "application/json",
+        dataType:"json",
+        data: JSON.stringify({
+            question: question,
+            rankedVehicles: vehicleList
+        }),
+        error: function(jqxHR, status, error){
+            console.log("Error", jqxHR, status, error)
+        }
+    })
+}
+
+//get LLM response to question
+// can use converse method directly but this helps simplify
+// and only returns the answer
+async function getLLMResponse(question){
+    const response = await converse(question, rankedVehicles);
+    const llmAnswer =  response?.answer ?? null;
+    console.log("Question", question)
+    console.log("LLM Response", llmAnswer);
+    return llmAnswer;
+}
