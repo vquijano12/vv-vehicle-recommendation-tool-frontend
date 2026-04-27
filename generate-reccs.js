@@ -32,7 +32,7 @@ async function getVehicles(){
     const response = await sendDataForVehicles(make, year);
 
     // store ranked vehicles in a global variable
-    rankedVehicles = response?.rankedVehicles ?? null
+    rankedVehicles = response?.rankedVehicles ?? [];
     console.log("Recommended Vehicles: ", rankedVehicles);
 }
 
@@ -42,7 +42,7 @@ async function converse(question, vehicleList){
         type:"POST",
         url: "https://r2lnjwzer4.execute-api.us-east-1.amazonaws.com/dev/vehicle-pool",
         contentType: "application/json",
-        dataTyoe:"json",
+        dataType:"json",
         data: JSON.stringify({
             question: question,
             rankedVehicles: vehicleList
@@ -57,6 +57,9 @@ async function converse(question, vehicleList){
 // can use converse method directly but this helps simplify
 // and only returns the answer
 async function getLLMResponse(question){
-    const response = await converse(question, rankedVehicles)
-    return response?.answer ?? null
+    const response = await converse(question, rankedVehicles);
+    const llmAnswer =  response?.answer ?? null;
+    console.log("Question", question)
+    console.log("LLM Response", llmAnswer);
+    return llmAnswer;
 }
