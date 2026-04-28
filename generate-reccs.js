@@ -23,7 +23,7 @@ async function sendDataForVehicles(make, year) {
 
 // Display top 3 recommendations in the chat
 function displayRecommendationsInChat(recommendedVehicles) {
-  let message = "<strong>Here are 3 vehicles that match your preferences:</strong><br><br>";
+  let message = "Here are 3 vehicles that match your preferences:<br><br>";
 
   const vehicles =
     recommendedVehicles?.rankedVehicles ||
@@ -46,7 +46,10 @@ function displayRecommendationsInChat(recommendedVehicles) {
       const make = window.lastSelectedMake || "";
       const year = window.lastSelectedYear || "";
 
-      message += `${index + 1}. ${year} ${make} ${model}<br>`;
+      //message += `${index + 1}. ${year} ${make} ${model}<br>`;
+
+      message += `<div class="vehicle-line">${index + 1}. ${year} ${make} ${model}</div>`;
+
     });
   }
 
@@ -59,6 +62,7 @@ window.renderRecommendationsInChat = displayRecommendationsInChat;
 async function handleFinalRecommendations(recommendedVehicles) {
   displayRecommendationsInChat(recommendedVehicles);
 
+  /*
   const userInput = document.getElementById("userInput");
   const sendButton = document.getElementById("sendButton");
 
@@ -72,9 +76,12 @@ async function handleFinalRecommendations(recommendedVehicles) {
     sendButton.disabled = true;
   }
 
+
   if (typeof window.showAuthPromptInChat === "function") {
     await window.showAuthPromptInChat();
   }
+
+  */
 
   if (typeof window.saveConversationState === "function") {
     window.saveConversationState();
@@ -154,16 +161,24 @@ async function getLLMResponse(question) {
     llmAnswer = llmAnswer
       .replace(/\*\*/g, "")
       .replace(/\n\s*\n/g, "\n")
-      .replace(/•\s*/g, "\n• ")
+      .replace(/Based on/g, "Based on")
+      .replace(/•\s*/g, "<br><br>• ")
+      .replace(/\s-\sScore:/g, "<br>- Score:")
+      .replace(/\s-\sRecall count:/g, "<br>- Recall count:")
+      .replace(/\s-\sSeverity weight:/g, "<br>- Severity weight:")
+      .replace(/\s-\sComplaint count:/g, "<br>- Complaint count:")
+      .replace(/\sReason:/g, "<br><br>Reason:")
+      .replace(/Note that/g, "<br><br>Note that")
       .replace(/\n/g, "<br>");
-  
-    llmAnswer = `
+            
+   /* llmAnswer = `
       <div class="llm-response">
         <strong>Why these vehicles match:</strong>
         ${llmAnswer}
       </div>
     `;
-  
+   */
+
     if (typeof window.addMessage === "function") {
       window.addMessage("Assistant", llmAnswer, "bot-message");
     }

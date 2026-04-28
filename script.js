@@ -145,7 +145,7 @@ window.onload = async function () {
 
     userInput.placeholder = chatMode
       ? "Ask a question about the recommendations..."
-      : "You are signed in.";
+      : "Type your answer...";
 
     window.saveConversationState();
   }
@@ -220,16 +220,29 @@ async function showRecommendationsInChat() {
     "bot-message"
   );
 
-  userInput.disabled = true;
-  sendButton.disabled = true;
-  userInput.placeholder = "Generating recommendations...";
-
   try {
     await getVehicles();
 
+    /*
     await getLLMResponse(
-      "Explain why these 3 vehicles are good recommendations using bullet points. For each vehicle, include the score, recall count, severity weight, complaint count, and one short explanation. Keep each bullet concise."
+      "Start with this exact sentence: Based on the provided ranked dataset, here are the explanations for why these 3 vehicles are good recommendations: Then format each vehicle EXACTLY like this with no blank lines: • Vehicle Name - Score: value - Recall count: value - Severity weight: value - Complaint count: value Reason: one short sentence. End with a note starting with: Note that"
     );
+
+    */
+
+    await getLLMResponse(
+      "Start with this exact sentence: Based on the provided ranked dataset, here are the explanations for why these 3 vehicles are good recommendations. Then use this format for each vehicle with no extra blank lines: • Vehicle Name - Score: value - Recall count: value - Severity weight: value - Complaint count: value Reason: one short sentence. End with a note starting with: Note that"
+    );
+    
+    const isAuthenticated =
+      typeof window.isUserAuthenticated === "function"
+        ? await window.isUserAuthenticated()
+        : false;
+
+    if (!isAuthenticated && typeof window.showAuthPromptInChat === "function") {
+      await window.showAuthPromptInChat();
+    }
+
 
     userInput.disabled = false;
     sendButton.disabled = false;
@@ -344,11 +357,14 @@ window.addMessage = function (sender, text, className, answerKey = null) {
   const messageDiv = document.createElement("div");
   messageDiv.className = `message ${className}`;
 
+  
   let editButton = "";
 
+  /*
   if (className === "user-message" && answerKey) {
     editButton = `<button class="edit-answer-btn" data-key="${answerKey}">Edit</button>`;
-  }
+  } 
+  */
 
   messageDiv.innerHTML = `
     <div class="message-label">${sender}</div>
