@@ -172,7 +172,7 @@ async function showRecommendationsChat() {
 
     /* !!! TESTING -- remove later  */
     //   const answer = await getLLMResponse("Which vehicle is the safest?");
-    // } catch (error) {
+    //  catch (error) {
     //   console.error("Validation failed:", error);
 
     // addMessage(
@@ -288,4 +288,32 @@ if (logoutButton) {
   logoutButton.addEventListener("click", function () {
     window.location.href = "auth.html";
   });
+}
+
+function showThinkingIndicator() {
+  removeThinkingIndicator();
+
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "message bot-message";
+  messageDiv.id = "thinkingIndicator";
+
+  messageDiv.innerHTML = `
+    <div class="message-label">Assistant</div>
+    <div class="thinking-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  `;
+
+  chatBox.appendChild(messageDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function removeThinkingIndicator() {
+  const thinkingIndicator = document.getElementById("thinkingIndicator");
+
+  if (thinkingIndicator) {
+    thinkingIndicator.remove();
+  }
 }
