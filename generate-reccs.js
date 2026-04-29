@@ -70,9 +70,6 @@ async function getLLMResponse(question){
 function formattedVehicleListToDisplay(vehicles, vehicleYear) {
     let message = "Here are 3 vehicles that match your preferences:<br><br>";
 
-
-
-
     vehicles.slice(0,3).forEach((vehicle, index)=>{
         const model = vehicle?.model ?? null;
         const make = vehicle?.make ?? null;
