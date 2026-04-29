@@ -35,6 +35,8 @@ async function getVehicles(){
     // store ranked vehicles in a global variable
     rankedVehicles = response?.rankedVehicles ?? [];
     console.log("Recommended Vehicles: ", rankedVehicles);
+
+
 }
 
 //send question to system
@@ -65,14 +67,18 @@ async function getLLMResponse(question){
     return llmAnswer;
 }
 
-function displayRecommendationsInChat(vehicles, vehicleYear) {
+function formattedVehicleListToDisplay(vehicles, vehicleYear) {
     let message = "Here are 3 vehicles that match your preferences:<br><br>";
 
-    const model = vehicle?.model ?? null;
-    const make = vehicle?.model ?? null;
+
 
 
     vehicles.slice(0,3).forEach((vehicle, index)=>{
-       message += `<div class = "vehicle-line">${index+1}. ${vehicleYear} ${make} ${model}</div>`
+        const model = vehicle?.model ?? null;
+        const make = vehicle?.make ?? null;
+        message += `<div class = "vehicle-line">${index+1}. ${vehicleYear} ${make} ${model}</div>`
     });
+
+    message += "<br>Feel free to ask me questions regarding these vehicles!"
+    return message;
 }

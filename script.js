@@ -191,7 +191,8 @@ async function showRecommendationsChat() {
 
       addMessage(
         "Assistant",
-        `Here are the recommended vehicles for you:\n\n${vehicleList}\n\nFeel free to ask me any questions about these vehicles!`,
+        formattedVehicleListToDisplay(rankedVehicles, validatedInput["preferredYear"]),
+        //`Here are the recommended vehicles for you:\n\n${vehicleList}\n\nFeel free to ask me any questions about these vehicles!`,
         "bot-message",
       );
     } else {
