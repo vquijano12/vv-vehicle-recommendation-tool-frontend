@@ -151,6 +151,34 @@ window.onload = async function () {
   }
 };
 
+function showThinkingIndicator() {
+  removeThinkingIndicator();
+
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "message bot-message";
+  messageDiv.id = "thinkingIndicator";
+
+  messageDiv.innerHTML = `
+    <div class="message-label">Assistant</div>
+    <div class="thinking-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  `;
+
+  chatBox.appendChild(messageDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function removeThinkingIndicator() {
+  const thinkingIndicator = document.getElementById("thinkingIndicator");
+
+  if (thinkingIndicator) {
+    thinkingIndicator.remove();
+  }
+}
+
 async function handleUserInput() {
   if (isGeneratingRecommendations || awaitingLLM) return;
 
@@ -192,6 +220,7 @@ async function handleUserInput() {
   userInput.disabled = true;
 
   try {
+    showThinkingIndicator();
     await getLLMResponse(answer);
   } catch (error) {
     console.error(error);
@@ -201,6 +230,7 @@ async function handleUserInput() {
       "bot-message"
     );
   } finally {
+    removeThinkingIndicator();
     awaitingLLM = false;
     sendButton.disabled = false;
     userInput.disabled = false;
@@ -220,20 +250,22 @@ async function showRecommendationsInChat() {
     "bot-message"
   );
 
+  userInput.disabled = true;
+  sendButton.disabled = true;
+  showThinkingIndicator();
+
   try {
     await getVehicles();
 
-    /*
-    await getLLMResponse(
-      "Start with this exact sentence: Based on the provided ranked dataset, here are the explanations for why these 3 vehicles are good recommendations: Then format each vehicle EXACTLY like this with no blank lines: • Vehicle Name - Score: value - Recall count: value - Severity weight: value - Complaint count: value Reason: one short sentence. End with a note starting with: Note that"
-    );
-
-    */
+    removeThinkingIndicator();
+    showThinkingIndicator();
 
     await getLLMResponse(
       "Start with this exact sentence: Based on the provided ranked dataset, here are the explanations for why these 3 vehicles are good recommendations. Then use this format for each vehicle with no extra blank lines: • Vehicle Name - Score: value - Recall count: value - Severity weight: value - Complaint count: value Reason: one short sentence. End with a note starting with: Note that"
     );
-    
+
+    removeThinkingIndicator();
+
     const isAuthenticated =
       typeof window.isUserAuthenticated === "function"
         ? await window.isUserAuthenticated()
@@ -243,13 +275,14 @@ async function showRecommendationsInChat() {
       await window.showAuthPromptInChat();
     }
 
-
     userInput.disabled = false;
     sendButton.disabled = false;
     userInput.placeholder = "Ask a question about the recommendations...";
     chatMode = true;
   } catch (error) {
     console.error("Error generating recommendations:", error);
+
+    removeThinkingIndicator();
 
     addMessage(
       "Assistant",
@@ -259,6 +292,7 @@ async function showRecommendationsInChat() {
 
     userInput.placeholder = "Please log in to continue...";
   } finally {
+    removeThinkingIndicator();
     isGeneratingRecommendations = false;
     window.saveConversationState();
   }
