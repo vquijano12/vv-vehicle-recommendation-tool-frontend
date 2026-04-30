@@ -397,8 +397,48 @@ function updateProgress() {
   }
 }
 
+
+/*
 if (logoutButton) {
   logoutButton.addEventListener("click", function () {
     window.location.href = "auth.html";
+  });
+}
+
+*/
+
+/*
+if (logoutButton) {
+  logoutButton.addEventListener("click", async function () {
+    sessionStorage.clear();
+    localStorage.clear();
+
+    if (typeof window.signOut === "function") {
+      await window.signOut();
+    }
+
+    window.location.href = "index.html";
+  });
+}
+
+*/
+
+if (logoutButton) {
+  logoutButton.addEventListener("click", async function () {
+    try {
+      if (window.Auth && typeof window.Auth.signOut === "function") {
+        await window.Auth.signOut();
+      }
+
+      sessionStorage.clear();
+      localStorage.clear();
+
+      window.location.href = "index.html";
+    } catch (error) {
+      console.error("Logout error:", error);
+      sessionStorage.clear();
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
   });
 }
