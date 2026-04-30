@@ -1,3 +1,4 @@
+let validatedInput = {};
 let rankedVehicles = [];
 
 async function sendDataForVehicles(make, year){
@@ -17,7 +18,7 @@ async function sendDataForVehicles(make, year){
 }
 
 async function getVehicles(){
-    const validatedInput = await getValidatedInputToDisplay()
+    validatedInput = await getValidatedInputToDisplay()
     let make;
     const year = validatedInput["preferredYear"];
 
@@ -34,6 +35,8 @@ async function getVehicles(){
     // store ranked vehicles in a global variable
     rankedVehicles = response?.rankedVehicles ?? [];
     console.log("Recommended Vehicles: ", rankedVehicles);
+
+
 }
 
 //send question to system
@@ -62,4 +65,17 @@ async function getLLMResponse(question){
     console.log("Question", question)
     console.log("LLM Response", llmAnswer);
     return llmAnswer;
+}
+
+function formattedVehicleListToDisplay(vehicles, vehicleYear) {
+    let message = "Here are 3 vehicles that match your preferences:<br><br>";
+
+    vehicles.slice(0,3).forEach((vehicle, index)=>{
+        const model = vehicle?.model ?? null;
+        const make = vehicle?.make ?? null;
+        message += `<div class = "vehicle-line">${index+1}. ${vehicleYear} ${make} ${model}</div>`
+    });
+
+    message += "<br>Feel free to ask me questions regarding these vehicles!"
+    return message;
 }

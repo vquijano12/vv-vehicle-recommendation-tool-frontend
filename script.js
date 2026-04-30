@@ -23,7 +23,7 @@ const questions = [
     key: "yearPreference",
     label: "Preferred Year",
     question:
-      "What year do you prefer your vehicle? You can enter a specific year (for example: 2022) or a range (for example: 2018-2022). If you do not have a preference, type 'no preference'.",
+      "What year do you prefer your vehicle? Please enter a specific year (for example: 2022). If you do not have a preference, type 'no preference'.",
   },
 
   /*
@@ -134,8 +134,12 @@ async function handleUserInput() {
   sendButton.disabled = true;
   userInput.disabled = true;
 
+  showThinkingIndicator();
+
   try {
     const answerText = await getLLMResponse(answer);
+
+    removeThinkingIndicator();
     addMessage(
       "Assistant",
       answerText || "I could not generate a response.",
@@ -143,6 +147,7 @@ async function handleUserInput() {
     );
   } catch (error) {
     console.error(error);
+    removeThinkingIndicator();
     addMessage(
       "Assistant",
       "There was an error getting a response.",
@@ -165,6 +170,7 @@ async function showRecommendationsChat() {
     "bot-message",
   );
 
+  showThinkingIndicator();
   try {
     /*const validatedData = await getValidatedInputToDisplay();
     console.log("Validated input:", validatedData);*/
@@ -172,7 +178,7 @@ async function showRecommendationsChat() {
 
     /* !!! TESTING -- remove later  */
     //   const answer = await getLLMResponse("Which vehicle is the safest?");
-    // } catch (error) {
+    //  catch (error) {
     //   console.error("Validation failed:", error);
 
     // addMessage(
@@ -191,7 +197,8 @@ async function showRecommendationsChat() {
 
       addMessage(
         "Assistant",
-        `Here are the recommended vehicles for you:\n\n${vehicleList}\n\nFeel free to ask me any questions about these vehicles!`,
+        formattedVehicleListToDisplay(rankedVehicles, validatedInput["preferredYear"]),
+        //`Here are the recommended vehicles for you:\n\n${vehicleList}\n\nFeel free to ask me any questions about these vehicles!`,
         "bot-message",
       );
     } else {
@@ -210,6 +217,8 @@ async function showRecommendationsChat() {
       "I collected your preferences, but there was an issue generating recommendations.",
       "bot-message",
     );
+  } finally {
+      removeThinkingIndicator();
   }
 
   // userInput.disabled = true;
@@ -288,4 +297,32 @@ if (logoutButton) {
   logoutButton.addEventListener("click", function () {
     window.location.href = "auth.html";
   });
+}
+
+function showThinkingIndicator() {
+  removeThinkingIndicator();
+
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "message bot-message";
+  messageDiv.id = "thinkingIndicator";
+
+  messageDiv.innerHTML = `
+    <div class="message-label">Assistant</div>
+    <div class="thinking-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  `;
+
+  chatBox.appendChild(messageDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function removeThinkingIndicator() {
+  const thinkingIndicator = document.getElementById("thinkingIndicator");
+
+  if (thinkingIndicator) {
+    thinkingIndicator.remove();
+  }
 }
