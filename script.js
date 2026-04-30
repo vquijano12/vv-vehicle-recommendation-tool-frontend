@@ -23,7 +23,7 @@ const questions = [
     key: "yearPreference",
     label: "Preferred Year",
     question:
-      "What year do you prefer your vehicle? You can enter a specific year (for example: 2022) or a range (for example: 2018-2022). If you do not have a preference, type 'no preference'.",
+      "What year do you prefer your vehicle? Please enter a specific year (for example: 2022). If you do not have a preference, type 'no preference'.",
   },
 
   /*
