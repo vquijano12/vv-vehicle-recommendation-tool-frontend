@@ -134,8 +134,12 @@ async function handleUserInput() {
   sendButton.disabled = true;
   userInput.disabled = true;
 
+  showThinkingIndicator();
+
   try {
     const answerText = await getLLMResponse(answer);
+
+    removeThinkingIndicator();
     addMessage(
       "Assistant",
       answerText || "I could not generate a response.",
@@ -143,6 +147,7 @@ async function handleUserInput() {
     );
   } catch (error) {
     console.error(error);
+    removeThinkingIndicator();
     addMessage(
       "Assistant",
       "There was an error getting a response.",
@@ -165,6 +170,7 @@ async function showRecommendationsChat() {
     "bot-message",
   );
 
+  showThinkingIndicator();
   try {
     /*const validatedData = await getValidatedInputToDisplay();
     console.log("Validated input:", validatedData);*/
@@ -211,6 +217,8 @@ async function showRecommendationsChat() {
       "I collected your preferences, but there was an issue generating recommendations.",
       "bot-message",
     );
+  } finally {
+      removeThinkingIndicator();
   }
 
   // userInput.disabled = true;
